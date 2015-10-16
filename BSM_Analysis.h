@@ -44,13 +44,27 @@ public :
    std::map<unsigned int, TH1*> _hmap_lead_muon_phi;
    std::map<unsigned int, TH1*> _hmap_slead_muon_phi;
    std::map<unsigned int, TH1*> _hmap_diMuon_mass;
-   std::map<unsigned int, TH2*> _h2map_lead_slead_muon_pT;
+   std::map<unsigned int, TH1*> _hmap_diMuon_mass_dmass;
+   std::map<unsigned int, TH1*> _hmap_lead_muon_pT_dmass;
+   std::map<unsigned int, TH1*> _hmap_slead_muon_pT_dmass;
+   std::map<unsigned int, TH1*> _hmap_slead_muon_eta_dmass;
+   std::map<unsigned int, TH1*> _hmap_lead_muon_eta_dmass;
+   std::map<unsigned int, TH1*> _hmap_slead_muon_phi_dmass;
+   std::map<unsigned int, TH1*> _hmap_lead_muon_phi_dmass;
+   
    // For Photons
    std::map<unsigned int, TH1*> _hmap_threebody_light;
    std::map<unsigned int, TH1*> _hmap_threebody_heavy;
+   std::map<unsigned int, TH1*> _hmap_threebody_light_dmass;
+   std::map<unsigned int, TH1*> _hmap_threebody_heavy_dmass;
    std::map<unsigned int, TH1*> _hmap_photon_pT;
    std::map<unsigned int, TH1*> _hmap_photon_eta;
    std::map<unsigned int, TH1*> _hmap_photon_phi;
+   std::map<unsigned int, TH1*> _hmap_DeltaR_lep_light;
+   std::map<unsigned int, TH1*> _hmap_DeltaR_sublep_light;
+   std::map<unsigned int, TH1*> _hmap_DeltaR_lep_high;
+   std::map<unsigned int, TH1*> _hmap_DeltaR_sublep_high;
+
    // Define Branches
    void setBranchAddress(TTree* BOOM);
    vector<string>  *Trigger_names;
@@ -71,11 +85,11 @@ public :
    vector<double>  *Muon_validHits;
    vector<double>  *Muon_validHitsInner;
    vector<double>  *Muon_matchedStat;
-   //vector<double>  *Muon_dxy_pv;
-   vector<double>  *Muon_dxy;
+   vector<double>  *Muon_dxy_pv;
+   //vector<double>  *Muon_dxy;
    vector<double>  *Muon_TLayers;
-   //vector<double>  *Muon_dz_bs;
-   vector<double>  *Muon_dz;
+   vector<double>  *Muon_dz_bs;
+   //vector<double>  *Muon_dz;
    vector<double>  *Muon_isoNeutralHadron;
    vector<double>  *Muon_isoPhoton;
    vector<double>  *Muon_isoPU;
@@ -111,23 +125,23 @@ public :
    Int_t           ootnpuVertices;
    Int_t           npuVerticesp1;
    Int_t           bestVertices;
-   //Double_t        Met_puppi_pt;
-   //Double_t        Met_puppi_sumEt;
-   //Double_t        Met_puppi_phi;
-   //Double_t        Met_puppi_px;
-   //Double_t        Met_puppi_py;
-   //Double_t        Met_puppi_pz;
+   Double_t        Met_puppi_pt;
+   Double_t        Met_puppi_sumEt;
+   Double_t        Met_puppi_phi;
+   Double_t        Met_puppi_px;
+   Double_t        Met_puppi_py;
+   Double_t        Met_puppi_pz;
    Double_t        Gen_Met;
-   Double_t        Met_pt;
-   Double_t        Met_sumEt;
-   Double_t        Met_phi;
-   Double_t        Met_px;
-   Double_t        Met_py;
-   Double_t        Met_pz;
-   Double_t        Met_shiftedPtUp;
-   Double_t        Met_shiftedPtDown;
-   //Double_t        Met_type1PF_shiftedPtUp;
-   //Double_t        Met_type1PF_shiftedPtDown;
+   //Double_t        Met_pt;
+   //Double_t        Met_sumEt;
+   //Double_t        Met_phi;
+   //Double_t        Met_px;
+   //Double_t        Met_py;
+   //Double_t        Met_pz;
+   //Double_t        Met_shiftedPtUp;
+   //Double_t        Met_shiftedPtDown;
+   Double_t        Met_type1PF_shiftedPtUp;
+   Double_t        Met_type1PF_shiftedPtDown;
      
       // List of branches
    TBranch        *b_Trigger_names;
@@ -148,11 +162,11 @@ public :
    TBranch        *b_Muon_validHits;   //!
    TBranch        *b_Muon_validHitsInner;   //!
    TBranch        *b_Muon_matchedStat;   //!
-   //TBranch        *b_Muon_dxy_pv;   //!
-   TBranch        *b_Muon_dxy;
+   TBranch        *b_Muon_dxy_pv;   //!
+   //TBranch        *b_Muon_dxy;
    TBranch        *b_Muon_TLayers;   //!
-   //TBranch        *b_Muon_dz_bs;   //!
-   TBranch        *b_Muon_dz;
+   TBranch        *b_Muon_dz_bs;   //!
+   //TBranch        *b_Muon_dz;
    TBranch        *b_Muon_isoNeutralHadron;   //!
    TBranch        *b_Muon_isoPhoton;   //!
    TBranch        *b_Muon_isoPU;   //!
@@ -188,22 +202,22 @@ public :
    TBranch        *b_ootnpuVertices;   //!
    TBranch        *b_npuVerticesp1;   //!
    TBranch        *b_bestVertices;   //!
-   TBranch        *b_Met_pt;   //!
-   TBranch        *b_Met_sumEt;   //!
-   TBranch        *b_Met_phi;   //!
-   TBranch        *b_Met_px;   //!
-   TBranch        *b_Met_py;   //!
-   TBranch        *b_Met_pz;   //!
-   //TBranch        *b_Met_puppi_pt;   //!
-   //TBranch        *b_Met_puppi_sumEt;   //!
-   //TBranch        *b_Met_puppi_phi;   //!
-   //TBranch        *b_Met_puppi_px;   //!
-   //TBranch        *b_Met_puppi_py;   //!
-   //TBranch        *b_Met_puppi_pz;   //!
+   //TBranch        *b_Met_pt;   //!
+   //TBranch        *b_Met_sumEt;   //!
+   //TBranch        *b_Met_phi;   //!
+   //TBranch        *b_Met_px;   //!
+   //TBranch        *b_Met_py;   //!
+   //TBranch        *b_Met_pz;   //!
+   TBranch        *b_Met_puppi_pt;   //!
+   TBranch        *b_Met_puppi_sumEt;   //!
+   TBranch        *b_Met_puppi_phi;   //!
+   TBranch        *b_Met_puppi_px;   //!
+   TBranch        *b_Met_puppi_py;   //!
+   TBranch        *b_Met_puppi_pz;   //!
    TBranch        *b_Gen_Met;   //!
-   //TBranch        *b_Met_type1PF_shiftedPtUp;   //!
-   //TBranch        *b_Met_type1PF_shiftedPtDown;   //!
-   TBranch        *b_Met_shiftedPtUp;   //!
-   TBranch        *b_Met_shiftedPtDown;   //!
+   TBranch        *b_Met_type1PF_shiftedPtUp;   //!
+   TBranch        *b_Met_type1PF_shiftedPtDown;   //!
+   //TBranch        *b_Met_shiftedPtUp;   //!
+   //TBranch        *b_Met_shiftedPtDown;   //!
 };
 #endif

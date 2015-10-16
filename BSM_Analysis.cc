@@ -5,13 +5,14 @@ int main (int argc, char *argv[])
   
 	//TApplication app("App",&argc, argv);
 	TFile * MassHisto = new TFile(argv[2], "RECREATE");
-	int nDir = 5;
+	int nDir = 6;
 	TDirectory *theDirectory[nDir];
 	theDirectory[0] = MassHisto->mkdir("AfterDimuonSelection");
 	theDirectory[1] = MassHisto->mkdir("AfterPhotonSelection");
 	theDirectory[2] = MassHisto->mkdir("AfterDileptonMassSelection");
 	theDirectory[3] = MassHisto->mkdir("AfterRemoveJPsiContamination");
-    theDirectory[4] = MassHisto->mkdir("AfterRemoveUpsilonContamination");
+	theDirectory[4] = MassHisto->mkdir("AfterRemoveUpsilonContamination");
+	theDirectory[5] = MassHisto->mkdir("AfterDeltaRSelection");
 	cout <<argv[1]<<endl;
 	BSM_Analysis BSM_Analysis_(MassHisto, theDirectory, nDir, argv[1]);
 }
@@ -84,11 +85,12 @@ BSM_Analysis::BSM_Analysis(TFile* theFile, TDirectory *cdDir[], int nDir, char* 
 		// Select dimuons ================
 		for (int m1 = 0; m1 < Muon_pt->size(); m1++)
 		{
-			if ((Muon_pt->size() > 1) && (abs(Muon_eta->at(m1) <2.4)) && (Muon_pt->at(m1) > 23.0) && (pass_trigger)){
+			if ((Muon_pt->size() > 1) && (abs(Muon_eta->at(m1) <2.4)) && (Muon_pt->at(m1) > 23.0) && (pass_trigger))
+			{
 				for (int m2 = 0; m2 < Muon_pt->size(); m2++)
 				{
-					if ((abs(Muon_eta->at(m2) <2.4)) && (Muon_pt->at(m2) >4.0)){
-		  
+					if ((abs(Muon_eta->at(m2) <2.4)) && (Muon_pt->at(m2) >4.0))
+					{
 						if (Muon_charge->at(m1)*Muon_charge->at(m2) < 0){
 							first_muon_vec.SetPtEtaPhiE(Muon_pt->at(m1), Muon_eta->at(m1), Muon_phi->at(m1), Muon_energy->at(m1));
 							Subfirst_muon_vec.SetPtEtaPhiE(Muon_pt->at(m2), Muon_eta->at(m2), Muon_phi->at(m2), Muon_energy->at(m2));
@@ -100,7 +102,6 @@ BSM_Analysis::BSM_Analysis(TFile* theFile, TDirectory *cdDir[], int nDir, char* 
 								dimuon_mass_int = dimuon_mass;
 							}
 						}
-		  
 					}
 					pass_dalitz_id[0] = 1;
 				}
@@ -183,33 +184,36 @@ BSM_Analysis::BSM_Analysis(TFile* theFile, TDirectory *cdDir[], int nDir, char* 
 			if((Photon_medium_vec.size() > 0) &&(Muon_pt->size() > 1)) {
 		
 				float dimuon_mass = (first_muon_vec + Subfirst_muon_vec).M();
-				if (dimuon_mass < 20.0) // dalitz dilepton mass
-				{
-					//dalitz_first_muon_vec = first_muon_vec;
-					//dalitz_first_muon_vec = Subfirst_muon_vec;
+				if (dimuon_mass < 20.0){  // dalitz dilepton mass
 					pass_dalitz_id[2] = 1;
 					
-					if((dimuon_mass < 2.9) || (dimuon_mass > 3.3)) // remove Jpsi contamination
-					{
-						//dalitz_first_muon_vec = first_muon_vec;
-						//dalitz_first_muon_vec = Subfirst_muon_vec;
+					if((dimuon_mass < 2.9) || (dimuon_mass > 3.3)) {   // remove Jpsi contamination
 						pass_dalitz_id[3] = 1;
 						
-						if((dimuon_mass < 9.3) || (dimuon_mass > 9.7)) //remove Upsilon contamination
-						{
+						if((dimuon_mass < 9.3) || (dimuon_mass > 9.7)) {     //remove Upsilon contamination
+
 							dalitz_first_muon_vec = first_muon_vec;
 							dalitz_first_muon_vec = Subfirst_muon_vec;
 							pass_dalitz_id[4] = 1;
-						}
-					}
-				}
+							
+							float Delta_photon_lepton = dalitz_first_muon_vec.DeltaR(Dalitz_photonless_vec);
+							float Delta_photon_sublepton = dalitz_Subfirst_muon_vec.DeltaR(Dalitz_photonless_vec);
+							float Delta_photon_lepton1 = dalitz_first_muon_vec.DeltaR(Dalitz_photonhigh_vec);
+							float Delta_photon_sublepton1 = dalitz_Subfirst_muon_vec.DeltaR(Dalitz_photonhigh_vec);
 				
+							if ((Delta_photon_lepton > 1.0) || (Delta_photon_sublepton > 1.0)){
+								pass_dalitz_id[5] = 1;
+							}
+							else if ((Delta_photon_lepton1 > 1.0) || (Delta_photon_sublepton1 > 1.0)){
+								pass_dalitz_id[5] = 1;				
+							}
+						}
+					}								
+				}				
 			}
 		}
 
 		
-	
-	
 	
       
   
@@ -230,7 +234,13 @@ BSM_Analysis::BSM_Analysis(TFile* theFile, TDirectory *cdDir[], int nDir, char* 
 				_hmap_threebody_light[i]->Fill((first_muon_vec + Subfirst_muon_vec + Dalitz_photonless_vec).M());
 				_hmap_threebody_heavy[i]->Fill((first_muon_vec + Subfirst_muon_vec + Dalitz_photonhigh_vec).M());
 			}
-			
+			if ((i > 3) && (pass_dalitz_id[i] == 1)){
+				_hmap_DeltaR_lep_light[i]->Fill(dalitz_first_muon_vec.DeltaR(Dalitz_photonless_vec));
+				_hmap_DeltaR_sublep_light[i]->Fill(dalitz_Subfirst_muon_vec.DeltaR(Dalitz_photonless_vec));
+				_hmap_DeltaR_lep_high[i]->Fill(dalitz_first_muon_vec.DeltaR(Dalitz_photonhigh_vec));
+				_hmap_DeltaR_sublep_high[i]->Fill(dalitz_Subfirst_muon_vec.DeltaR(Dalitz_photonhigh_vec));
+						
+			}
 	
 	  
 		}
@@ -252,7 +262,13 @@ BSM_Analysis::BSM_Analysis(TFile* theFile, TDirectory *cdDir[], int nDir, char* 
 			_hmap_threebody_light[d]->Write();
 			_hmap_threebody_heavy[d]->Write();
 		}
-	  
+	   
+		if(d > 3){
+			_hmap_DeltaR_lep_light[d]->Write();
+			_hmap_DeltaR_sublep_light[d]->Write();
+			_hmap_DeltaR_lep_high[d]->Write();
+			_hmap_DeltaR_sublep_high[d]->Write();
+		}
       
 	}
 	theFile->Close();
@@ -270,21 +286,27 @@ void BSM_Analysis::crateHistoMasps (int directories)
 	for (int i = 0; i < directories; i++)
 	{
 		// Muon distributions
-		_hmap_diMuon_mass[i]      = new TH1F("diMuonMass",      "m_{#mu, #mu}", 300., 0., 300.);
-		_hmap_lead_muon_pT[i]     = new TH1F("lead_muon_pT",    "#mu p_{T}",    300, 0., 300.);
-		_hmap_slead_muon_pT[i]    = new TH1F("slead_muon_pT",   "#mu p_{T}",    300, 0., 300.);
-		_hmap_lead_muon_eta[i]    = new TH1F("lead_muon_eta",   "#mu #eta",     50, -2.5, 2.5);
-		_hmap_slead_muon_eta[i]   = new TH1F("slead_muon_eta",  "#mu #eta",     50, -2.5, 2.5);
-		_hmap_lead_muon_phi[i]    = new TH1F("lead_muon_phi",   "#mu #phi",     70, -3.5, 3.5);
-		_hmap_slead_muon_phi[i]    = new TH1F("slead_muon_phi", "#mu #phi",     70, -3.5, 3.5);
+		_hmap_diMuon_mass[i]      = new TH1F("diMuonMass",      "m_{#mu, #mu}", 600., 0., 300.);
+		_hmap_lead_muon_pT[i]     = new TH1F("lead_muon_pT",    "#mu p_{T}",    600, 0., 300.);
+		_hmap_slead_muon_pT[i]    = new TH1F("slead_muon_pT",   "#mu p_{T}",    600, 0., 300.);
+		_hmap_lead_muon_eta[i]    = new TH1F("lead_muon_eta",   "#mu #eta",     100, -2.5, 2.5);
+		_hmap_slead_muon_eta[i]   = new TH1F("slead_muon_eta",  "#mu #eta",     100, -2.5, 2.5);
+		_hmap_lead_muon_phi[i]    = new TH1F("lead_muon_phi",   "#mu #phi",     140, -3.5, 3.5);
+		_hmap_slead_muon_phi[i]    = new TH1F("slead_muon_phi", "#mu #phi",     140, -3.5, 3.5);
       
 		if(i > 0){
-			_hmap_threebody_light[i]  = new TH1F("threebody_light_mass", "m_{#mu,#mu,#gamma}",200.,50.,250.);
-			_hmap_threebody_heavy[i]  = new TH1F("threebody_heavy_mass", "m_{#mu,#mu,#gamma}",200.,50.,250.);
+			_hmap_threebody_light[i]  = new TH1F("threebody_light_mass", "m_{#mu,#mu,#gamma}",400.,50.,250.);
+			_hmap_threebody_heavy[i]  = new TH1F("threebody_heavy_mass", "m_{#mu,#mu,#gamma}",400.,50.,250.);
 		}
 		
-		if(i>1){
+		if(i > 1){
 			_hmap_diMuon_mass[i]      = new TH1F("diMuonMass",      "m_{#mu, #mu}", 100., 0., 50.);
+		}
+		if(i > 3){
+			_hmap_DeltaR_lep_light[i] = new TH1F("DeltaR_lead_muon_photon_l", "#Delta R(#mu,#gamma)", 100., 0., 5.);
+			_hmap_DeltaR_sublep_light[i] = new TH1F("DeltaR_slead_muon_photon_l","#Delta R(#mu,#gamma)", 100., 0., 5.);
+			_hmap_DeltaR_lep_high[i] = new TH1F("DeltaR_lead_muon_lead_photon_h","#Delta R(#mu,#gamma)", 100., 0., 5.);
+			_hmap_DeltaR_sublep_high[i] = new TH1F("DeltaR_slead_muon_slead_photon_h","#Delta R(#mu,#gamma)", 100., 0., 5.);	
 		}
 	
       
